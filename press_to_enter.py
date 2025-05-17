@@ -1,3 +1,4 @@
+import sys
 from ui.ui_runner import UIRunner
 from wiimote.wiimote_runner import WiimoteRunner
 
@@ -7,6 +8,7 @@ wm_runner = WiimoteRunner()
 while ui_runner.is_running():
     wm_runner.update()
     wm_runner.try_connect()
-    ui_runner.draw()
+    ui_runner.update()
 
 ui_runner.quit()
+sys.exit()

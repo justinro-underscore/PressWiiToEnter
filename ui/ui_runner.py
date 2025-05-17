@@ -1,6 +1,12 @@
 import pygame
+from ui.screens.screen import ScreenStates
+from ui.screens.intro_connect_screen import IntroConnectScreen
 
 class UIRunner:
+    SCREEN_STATES = {
+        ScreenStates.INTRO_CONNECT_SCREEN: IntroConnectScreen
+    }
+
     def __init__(self):
         # pygame setup
         pygame.init()
@@ -9,26 +15,20 @@ class UIRunner:
         self.display = pygame.display.set_mode((1720, 880))
         self.clock = pygame.time.Clock()
         self.dt = 0
-        self.player_pos = pygame.Vector2(self.display.get_width() / 2, self.display.get_height() / 2)
 
-    def draw(self):
-        # fill the screen with a color to wipe away anything from last frame
-        self.display.fill('#525252')
+        self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_CONNECT_SCREEN](self.display)
 
-        pygame.draw.circle(self.display, "red", self.player_pos, 40)
+    def update(self):
+        self.curr_screen.update(self.dt)
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            self.player_pos.y -= 300 * self.dt
-        if keys[pygame.K_s]:
-            self.player_pos.y += 300 * self.dt
-        if keys[pygame.K_a]:
-            self.player_pos.x -= 300 * self.dt
-        if keys[pygame.K_d]:
-            self.player_pos.x += 300 * self.dt
+        self.display.fill(self.curr_screen.background_color)
+        self.curr_screen.draw()
+
+        self.curr_screen.clean()
 
         # flip() the display to put your work on screen
-        pygame.display.flip()
+        # pygame.display.flip()
+        pygame.display.update()
 
         # limits FPS to 60
         # dt is delta time in seconds since last frame, used for framerate-
