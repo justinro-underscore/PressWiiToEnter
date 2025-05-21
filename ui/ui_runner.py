@@ -13,13 +13,15 @@ class UIRunner:
 
         # self.display = pygame.display.set_mode(flags=pygame.FULLSCREEN)
         self.display = pygame.display.set_mode((1720, 880))
+        pygame.display.set_caption('Press Wii to Enter')
+        pygame.mouse.set_visible(False)
         self.clock = pygame.time.Clock()
         self.dt = 0
 
         self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_CONNECT_SCREEN](self.display)
 
-    def update(self):
-        self.curr_screen.update(self.dt)
+    def update(self, wm_state):
+        self.curr_screen.update(self.dt, wm_state)
 
         self.display.fill(self.curr_screen.background_color)
         self.curr_screen.draw()
@@ -41,10 +43,9 @@ class UIRunner:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-        # check for escape key
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_ESCAPE]:
-            return False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return False
+
         return True
 
     def quit(self):

@@ -22,13 +22,13 @@ class Screen:
         self.active_objs = []
         self.events = {}
 
-    def update(self, dt):
+    def update(self, dt, wm_state):
         upcoming_events = {}
         for obj in self.active_objs:
             events = []
             if type(obj) in self.events:
                 events = self.events[type(obj)]
-            new_events = obj.update(dt, events)
+            new_events = obj.update(dt, events, wm_state)
             if new_events is not None:
                 for new_event in new_events:
                     event_class = new_event[0]
