@@ -1,7 +1,7 @@
 import pygame
 from ui.screens.screen import ScreenStates
-from ui.screens.intro_connect_screen import IntroConnectScreen
-from ui.screens.calibration_screen import CalibrationScreen
+from ui.screens.screen_states.intro_connect_screen import IntroConnectScreen
+from ui.screens.screen_states.calibration_screen import CalibrationScreen
 
 class UIRunner:
     SCREEN_STATES = {
