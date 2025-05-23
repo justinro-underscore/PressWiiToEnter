@@ -1,5 +1,6 @@
 import pygame
 from enum import Enum
+from ui.screens.constants import Constants
 from ui.screens.easings import ease_in_sine, ease_out_elastic
 from ui.screens.screen import Screen, ScreenStates
 from ui.screens.ui_object import UIObject
@@ -43,7 +44,6 @@ class ConnectDialogStates(Enum):
     FADING_OUT = 4
 
 class UIObjConnectDialog(UIObject):
-    DIALOG_OFFSET = 50
     FADE_TIME = 1
     CONNECTED_BOUNCE_TIME = 0.75
     CONNECTED_TIME_OFFSET = 0.5
@@ -53,8 +53,8 @@ class UIObjConnectDialog(UIObject):
         self.state = ConnectDialogStates.FADING_IN
 
         dialog_size = dialog_img.get_size()
-        x_scale = (display_size[0] - (self.DIALOG_OFFSET * 2)) / dialog_size[0]
-        y_scale = (display_size[1] - (self.DIALOG_OFFSET * 2)) / dialog_size[1]
+        x_scale = (display_size[0] - (Constants.DIALOG_OFFSET * 2)) / dialog_size[0]
+        y_scale = (display_size[1] - (Constants.DIALOG_OFFSET * 2)) / dialog_size[1]
         scale = min(x_scale, y_scale)
         dialog_size = (int(dialog_size[0] * scale), int(dialog_size[1] * scale))
         self.dialog_pos = ((display_size[0] - dialog_size[0]) / 2, (display_size[1] - dialog_size[1]) / 2)
@@ -66,7 +66,7 @@ class UIObjConnectDialog(UIObject):
         self.alpha_surf.convert()
 
         press_connect_size = press_connect_img.get_size()
-        press_connect_size = (int(press_connect_size[0] * scale), int(press_connect_size[1] * scale))
+        press_connect_size = (int(press_connect_size[0] * scale * 0.25), int(press_connect_size[1] * scale * 0.25))
         press_connect_img_offset = (339, 41.5)
         self.press_connect_pos = (press_connect_img_offset[0] * scale, press_connect_img_offset[1] * scale)
         self.press_connect_img_orig = pygame.transform.scale(press_connect_img, press_connect_size)
@@ -104,7 +104,7 @@ class UIObjConnectDialog(UIObject):
                 self.alpha_time += dt
                 self.alpha = max(((self.FADE_TIME - self.alpha_time) / self.FADE_TIME) * 255, 0)
                 if self.alpha == 0:
-                    print('Next screen')
+                    return ScreenStates.CALIBRATION_SCREEN
         return []
 
     def draw(self, display):
@@ -140,7 +140,7 @@ class IntroConnectScreen(Screen):
         super().__init__(display)
         display_size = display.get_size()
         dialog_img = pygame.image.load('assets/images/dialog.png').convert_alpha()
-        press_connect_img = pygame.image.load('assets/images/press-to-connect.png').convert_alpha()
+        press_connect_img = pygame.image.load('assets/images/press-to-connect_upscaled.png').convert_alpha()
         self.active_objs = [
             UIObjConnectDialog(display_size, dialog_img, press_connect_img),
             UIObjIntroFade(display_size)

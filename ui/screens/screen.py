@@ -30,12 +30,15 @@ class Screen:
                 events = self.events[type(obj)]
             new_events = obj.update(dt, events, wm_state)
             if new_events is not None:
-                for new_event in new_events:
-                    event_class = new_event[0]
-                    if event_class in upcoming_events:
-                        upcoming_events[event_class] += new_event[1]
-                    else:
-                        upcoming_events[event_class] = new_event[1]
+                if isinstance(new_events, ScreenStates):
+                    return new_events
+                else:
+                    for new_event in new_events:
+                        event_class = new_event[0]
+                        if event_class in upcoming_events:
+                            upcoming_events[event_class] += new_event[1]
+                        else:
+                            upcoming_events[event_class] = new_event[1]
         self.events = upcoming_events
 
     def draw(self):

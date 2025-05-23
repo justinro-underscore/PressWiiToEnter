@@ -1,10 +1,12 @@
 import pygame
 from ui.screens.screen import ScreenStates
 from ui.screens.intro_connect_screen import IntroConnectScreen
+from ui.screens.calibration_screen import CalibrationScreen
 
 class UIRunner:
     SCREEN_STATES = {
-        ScreenStates.INTRO_CONNECT_SCREEN: IntroConnectScreen
+        ScreenStates.INTRO_CONNECT_SCREEN: IntroConnectScreen,
+        ScreenStates.CALIBRATION_SCREEN: CalibrationScreen
     }
 
     def __init__(self):
@@ -21,7 +23,7 @@ class UIRunner:
         self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_CONNECT_SCREEN](self.display)
 
     def update(self, wm_state):
-        self.curr_screen.update(self.dt, wm_state)
+        new_screen = self.curr_screen.update(self.dt, wm_state)
 
         self.display.fill(self.curr_screen.background_color)
         self.curr_screen.draw()
@@ -36,6 +38,9 @@ class UIRunner:
         # dt is delta time in seconds since last frame, used for framerate-
         # independent physics.
         self.dt = self.clock.tick(60) / 1000
+
+        if new_screen is not None:
+            self.curr_screen = self.SCREEN_STATES[new_screen](self.display)
 
     def is_running(self):
         # poll for events
