@@ -139,7 +139,7 @@ class IntroConnectScreen(Screen):
     def __init__(self, display):
         super().__init__(display)
         display_size = display.get_size()
-        dialog_img = pygame.image.load('assets/images/dialog.png').convert_alpha()
+        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         press_connect_img = pygame.image.load('assets/images/press-to-connect_upscaled.png').convert_alpha()
         self.active_objs = [
             UIObjConnectDialog(display_size, dialog_img, press_connect_img),

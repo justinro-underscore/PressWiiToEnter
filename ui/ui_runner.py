@@ -1,11 +1,13 @@
 import pygame
 from ui.screens.screen import ScreenStates
 from ui.screens.screen_states.intro_connect_screen import IntroConnectScreen
+from ui.screens.screen_states.intro_pickup_screen import IntroPickupScreen
 from ui.screens.screen_states.calibration_screen import CalibrationScreen
 
 class UIRunner:
     SCREEN_STATES = {
         ScreenStates.INTRO_CONNECT_SCREEN: IntroConnectScreen,
+        ScreenStates.INTRO_PICKUP_SCREEN: IntroPickupScreen,
         ScreenStates.CALIBRATION_SCREEN: CalibrationScreen
     }
 
@@ -20,7 +22,7 @@ class UIRunner:
         self.clock = pygame.time.Clock()
         self.dt = 0
 
-        self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_CONNECT_SCREEN](self.display)
+        self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_PICKUP_SCREEN](self.display)
 
     def update(self, wm_state):
         new_screen = self.curr_screen.update(self.dt, wm_state)

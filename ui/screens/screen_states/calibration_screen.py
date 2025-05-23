@@ -48,7 +48,7 @@ class CalibrationScreen(Screen):
     def __init__(self, display):
         super().__init__(display)
         display_size = display.get_size()
-        dialog_img = pygame.image.load('assets/images/dialog.png').convert_alpha()
+        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         self.active_objs = [
             UIObjCalibrationDialog(display_size, dialog_img)
         ]
