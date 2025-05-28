@@ -1,40 +1,62 @@
-import cwiid
 import threading
+import time
+from multiprocessing import Process, Queue, set_start_method
+import os, signal
 from wiimote.wiimote_state import WiimoteState
+from wiimote.wiimote_handler import wiimote_handler
 
 class WiimoteRunner:
     def __init__(self):
         self.running = True
-        self.wm = None
         self.wm_state = WiimoteState()
 
-        self.connecting_thread = None
-        self.connecting = False
+        set_start_method('fork') # Note! This will only work on Mac/Linux!
 
-    def update(self):
-        if not self.wm_state.connected and not self.connecting:
-            self.try_connect()
+        self.polling_thread = threading.Thread(target=self.start_polling)
+        self.polling_thread.start()
 
-    def try_connect(self):
-        if self.wm or self.connecting:
-            return
+    def kick_off_handler(self):
+        self.wm_queue = Queue()
+        self.wm_process = Process(target=wiimote_handler, args=(self.wm_queue,))
+        self.wm_process.start()
 
-        self.connecting = True
-        self.connecting_thread = threading.Thread(target=self.infinite_connect)
-        self.connecting_thread.start()
+    def terminate_handler(self):
+        self.wm_state.reset()
+        os.kill(self.wm_process.pid, signal.SIGINT)
+        self.wm_process.terminate()
+        self.wm_process.join()
 
-    def infinite_connect(self):
-        while not self.wm and self.running:
+    def start_polling(self):
+        self.kick_off_handler()
+
+        while self.running:
+            time.sleep(0.1)
+
             try:
-                self.wm = cwiid.Wiimote()
-            except RuntimeError:
-                print("Trying again...")
-        if not self.running:
-            return
-        self.wm.led = 1
-        self.connecting = False
-        self.wm_state.connected = True
-    
+                # If we're not connected, keep polling the queue until we get a connection
+                if not self.wm_state.connected:
+                    try:
+                        connected = self.wm_queue.get_nowait()
+                        if connected == True:
+                            print('Connected to Wiimote!')
+                            self.wm_state.connected = True
+                        else:
+                            continue
+                    except Exception:
+                        continue
+
+                # Once we have a connection, try to get the state with a timeout
+                state = self.wm_queue.get(timeout=1.0)
+                if 'wiimote_error' in state:
+                    raise state['wiimote_error']
+                else:
+                    self.wm_state.acc = state['acc']
+            except Exception:
+                print('No response from Wiimote, killing process and trying again...')
+                self.terminate_handler()
+                self.kick_off_handler()
+
     def on_exit(self):
         self.running = False
-        self.connecting_thread.join()
+        self.polling_thread.join()
+        os.kill(self.wm_process.pid, signal.SIGINT)

@@ -29,7 +29,7 @@ class UIObjIntroFade(UIObject):
             self.surf.set_alpha(a)
             if progress >= 1:
                 self.is_complete = True
-                return [(UIObjConnectDialog, 'faded-in')]
+                return [(UIObjConnectDialog, Constants.EVENT_FADED_IN)]
         return []
 
     def draw(self, display):
@@ -38,19 +38,21 @@ class UIObjIntroFade(UIObject):
 ######################################################
 
 class ConnectDialogStates(Enum):
-    FADING_IN = 1
-    IDLE = 2,
-    CONNECTED = 3
-    FADING_OUT = 4
+    WAITING_FOR_FADE = 1
+    FADING_IN = 2
+    IDLE = 3
+    CONNECTED = 4
+    FADING_OUT = 5
 
 class UIObjConnectDialog(UIObject):
-    FADE_TIME = 1
+    FADE_IN_TIME = 0.5
+    FADE_OUT_TIME = 1
     CONNECTED_BOUNCE_TIME = 0.75
     CONNECTED_TIME_OFFSET = 0.5
 
-    def __init__(self, display_size, dialog_img, press_connect_img):
+    def __init__(self, display_size, dialog_img, press_connect_img, from_dialog):
         super().__init__()
-        self.state = ConnectDialogStates.FADING_IN
+        self.state = ConnectDialogStates.FADING_IN if from_dialog else ConnectDialogStates.WAITING_FOR_FADE
 
         dialog_size = dialog_img.get_size()
         x_scale = (display_size[0] - (Constants.DIALOG_OFFSET * 2)) / dialog_size[0]
@@ -60,7 +62,7 @@ class UIObjConnectDialog(UIObject):
         self.dialog_pos = ((display_size[0] - dialog_size[0]) / 2, (display_size[1] - dialog_size[1]) / 2)
         self.dialog_img = pygame.transform.scale(dialog_img, dialog_size)
 
-        self.alpha = 255
+        self.alpha = 0 if from_dialog else 255
         self.alpha_time = 0
         self.alpha_surf = pygame.Surface(dialog_size, pygame.SRCALPHA)
         self.alpha_surf.convert()
@@ -83,8 +85,13 @@ class UIObjConnectDialog(UIObject):
 
     def update(self, dt, incoming_events, wm_state):
         match self.state:
+            case ConnectDialogStates.WAITING_FOR_FADE:
+                if Constants.EVENT_FADED_IN in incoming_events:
+                    self.state = ConnectDialogStates.IDLE
             case ConnectDialogStates.FADING_IN:
-                if 'faded-in' in incoming_events:
+                self.alpha_time += dt
+                self.alpha = min((self.alpha_time / self.FADE_IN_TIME) * 255, 255)
+                if self.alpha == 255:
                     self.state = ConnectDialogStates.IDLE
             case ConnectDialogStates.IDLE:
                 if wm_state.connected:
@@ -102,7 +109,7 @@ class UIObjConnectDialog(UIObject):
                 pass
             case ConnectDialogStates.FADING_OUT:
                 self.alpha_time += dt
-                self.alpha = max(((self.FADE_TIME - self.alpha_time) / self.FADE_TIME) * 255, 0)
+                self.alpha = max(((self.FADE_OUT_TIME - self.alpha_time) / self.FADE_OUT_TIME) * 255, 0)
                 if self.alpha == 0:
                     return ScreenStates.CALIBRATION_SCREEN
         return []
@@ -136,12 +143,15 @@ class IntroConnectScreen(Screen):
     def background_color(self):
         return '#525252'
 
-    def __init__(self, display):
-        super().__init__(display)
+    def __init__(self, display, init_events):
+        super().__init__(display, init_events)
         display_size = display.get_size()
         dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         press_connect_img = pygame.image.load('assets/images/press-to-connect_upscaled.png').convert_alpha()
+
+        from_dialog = Constants.EVENT_FROM_DIALOG in init_events
         self.active_objs = [
-            UIObjConnectDialog(display_size, dialog_img, press_connect_img),
-            UIObjIntroFade(display_size)
+            UIObjConnectDialog(display_size, dialog_img, press_connect_img, from_dialog),
         ]
+        if not from_dialog:
+            self.active_objs += [UIObjIntroFade(display_size)]

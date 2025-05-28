@@ -1,4 +1,5 @@
 import pygame
+from collections.abc import Sequence
 from ui.screens.screen import ScreenStates
 from ui.screens.screen_states.intro_connect_screen import IntroConnectScreen
 from ui.screens.screen_states.intro_pickup_screen import IntroPickupScreen
@@ -15,14 +16,14 @@ class UIRunner:
         # pygame setup
         pygame.init()
 
-        # self.display = pygame.display.set_mode(flags=pygame.FULLSCREEN)
+        # self.display = pygame.display.set_mode(flags=pycollections.abc.game.FULLSCREEN)
         self.display = pygame.display.set_mode((1720, 880))
         pygame.display.set_caption('Press Wii to Enter')
         pygame.mouse.set_visible(False)
         self.clock = pygame.time.Clock()
         self.dt = 0
 
-        self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_PICKUP_SCREEN](self.display)
+        self.curr_screen = self.SCREEN_STATES[ScreenStates.INTRO_CONNECT_SCREEN](self.display, [])
 
     def update(self, wm_state):
         new_screen = self.curr_screen.update(self.dt, wm_state)
@@ -42,7 +43,14 @@ class UIRunner:
         self.dt = self.clock.tick(60) / 1000
 
         if new_screen is not None:
-            self.curr_screen = self.SCREEN_STATES[new_screen](self.display)
+            events = []
+            if not isinstance(new_screen, str) and isinstance(new_screen, Sequence):
+                if not isinstance(new_screen[1], str) and isinstance(new_screen[1], Sequence):
+                    events = new_screen[1]
+                else:
+                    events = [new_screen[1]]
+                new_screen = new_screen[0]
+            self.curr_screen = self.SCREEN_STATES[new_screen](self.display, events)
 
     def is_running(self):
         # poll for events

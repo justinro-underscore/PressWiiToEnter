@@ -1,4 +1,3 @@
-
 from enum import Enum
 
 class ScreenStates(Enum):
@@ -17,7 +16,7 @@ class Screen:
     def background_color(self):
         return 'black'
 
-    def __init__(self, display):
+    def __init__(self, display, init_events):
         self.display = display
         self.active_objs = []
         self.events = {}
@@ -30,7 +29,7 @@ class Screen:
                 events = self.events[type(obj)]
             new_events = obj.update(dt, events, wm_state)
             if new_events is not None:
-                if isinstance(new_events, ScreenStates):
+                if isinstance(new_events, ScreenStates) or (len(new_events) > 0 and isinstance(new_events[0], ScreenStates)):
                     return new_events
                 else:
                     for new_event in new_events:

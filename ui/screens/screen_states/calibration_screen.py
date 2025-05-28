@@ -45,8 +45,8 @@ class CalibrationScreen(Screen):
     def background_color(self):
         return '#525252'
 
-    def __init__(self, display):
-        super().__init__(display)
+    def __init__(self, display, init_events):
+        super().__init__(display, init_events)
         display_size = display.get_size()
         dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         self.active_objs = [
