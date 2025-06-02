@@ -50,10 +50,11 @@ class UIObjConnectDialog(UIObject):
     CONNECTED_BOUNCE_TIME = 0.75
     CONNECTED_TIME_OFFSET = 0.5
 
-    def __init__(self, display_size, dialog_img, press_connect_img, from_dialog):
+    def __init__(self, display_size, from_dialog):
         super().__init__()
         self.state = ConnectDialogStates.FADING_IN if from_dialog else ConnectDialogStates.WAITING_FOR_FADE
 
+        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         dialog_size = dialog_img.get_size()
         x_scale = (display_size[0] - (Constants.DIALOG_OFFSET * 2)) / dialog_size[0]
         y_scale = (display_size[1] - (Constants.DIALOG_OFFSET * 2)) / dialog_size[1]
@@ -67,6 +68,7 @@ class UIObjConnectDialog(UIObject):
         self.alpha_surf = pygame.Surface(dialog_size, pygame.SRCALPHA)
         self.alpha_surf.convert()
 
+        press_connect_img = pygame.image.load('assets/images/intro-connecting/press-to-connect_upscaled.png').convert_alpha()
         press_connect_size = press_connect_img.get_size()
         press_connect_size = (int(press_connect_size[0] * scale * 0.25), int(press_connect_size[1] * scale * 0.25))
         press_connect_img_offset = (339, 41.5)
@@ -146,14 +148,11 @@ class IntroConnectScreen(Screen):
 
     def __init__(self, display, init_events):
         super().__init__(display, init_events)
-        display_size = display.get_size()
-        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
-        press_connect_img = pygame.image.load('assets/images/press-to-connect_upscaled.png').convert_alpha()
 
         from_dialog = Constants.EVENT_FROM_DIALOG in init_events
         from_white_screen = Constants.EVENT_FROM_WHITE_SCREEN in init_events
         self.active_objs = [
-            UIObjConnectDialog(display_size, dialog_img, press_connect_img, from_dialog),
+            UIObjConnectDialog(self.display_size, from_dialog),
         ]
         if not from_dialog:
-            self.active_objs += [UIObjIntroFade(display_size, from_white_screen)]
+            self.active_objs += [UIObjIntroFade(self.display_size, from_white_screen)]

@@ -22,12 +22,13 @@ class UIObjPickUpDialog(UIObject):
     TEXT_MOVE_AMOUNT = 3
     MAG_THRESHOLD = 2
 
-    def __init__(self, display_size, dialog_img, pick_up_img):
+    def __init__(self, display_size):
         super().__init__()
         self.state = PickUpDialogStates.FADING_IN
         self.acc_mag = None
         self.disconnected = False
 
+        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         self.dialog_size = dialog_img.get_size()
         x_scale = (display_size[0] - (Constants.DIALOG_OFFSET * 2)) / self.dialog_size[0]
         y_scale = (display_size[1] - (Constants.DIALOG_OFFSET * 2)) / self.dialog_size[1]
@@ -41,6 +42,7 @@ class UIObjPickUpDialog(UIObject):
         self.alpha_surf = pygame.Surface(self.dialog_size, pygame.SRCALPHA)
         self.alpha_surf.convert()
 
+        pick_up_img = pygame.image.load('assets/images/intro-pickup/pick-up-remote_upscaled.png').convert_alpha()
         pick_up_size = pick_up_img.get_size()
         pick_up_size = (int(pick_up_size[0] * scale * 0.75), int(pick_up_size[1] * scale * 0.75))
         pick_up_img_offset = (335, 42)
@@ -53,6 +55,7 @@ class UIObjPickUpDialog(UIObject):
         self.text_size = self.text.get_size()
         self.text_pos_orig = self.text.get_rect(centerx=self.dialog_size[0] * 0.5, centery=self.dialog_size[1] * 0.72)
         self.text_pos = self.text_pos_orig
+        self.TEXT_MOVE_AMOUNT *= scale
 
     def update(self, dt, incoming_events, wm_state):
         prev_acc_mag = self.acc_mag
@@ -115,9 +118,6 @@ class IntroPickupScreen(Screen):
 
     def __init__(self, display, init_events):
         super().__init__(display, init_events)
-        display_size = display.get_size()
-        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
-        pickup_img = pygame.image.load('assets/images/pick-up-remote_upscaled.png').convert_alpha()
         self.active_objs = [
-            UIObjPickUpDialog(display_size, dialog_img, pickup_img)
+            UIObjPickUpDialog(self.display_size)
         ]

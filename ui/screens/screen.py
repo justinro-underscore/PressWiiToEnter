@@ -18,6 +18,7 @@ class Screen:
 
     def __init__(self, display, init_events):
         self.display = display
+        self.display_size = display.get_size()
         self.active_objs = []
         self.events = {}
 

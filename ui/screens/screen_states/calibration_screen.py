@@ -80,15 +80,15 @@ class WiimotePlayerUI(UIObject):
         self.surf_size = (326 * base_scale, 252 * base_scale)
         self.surf = pygame.Surface(self.surf_size, pygame.SRCALPHA)
 
-        player_one_img = pygame.image.load('assets/images/wiimote-player-1.png').convert_alpha()
+        player_one_img = pygame.image.load('assets/images/calibration/wiimote-player-1.png').convert_alpha()
         self.player_one_size = player_one_img.get_size()
         self.player_one_size = (self.player_one_size[0] * base_scale, self.player_one_size[1] * base_scale)
         self.player_one_img = pygame.transform.scale(player_one_img, self.player_one_size)
         self.player_one_pos = self.player_one_img.get_rect(centerx=self.surf_size[0] * 0.5, centery=5 + (self.player_one_size[1] * 0.5))
 
-        calibrating_dark_img = pygame.image.load('assets/images/calibrating-dark.png').convert_alpha()
-        calibrating_bright_img = pygame.image.load('assets/images/calibrating-bright.png').convert_alpha()
-        calibrating_ok_img = pygame.image.load('assets/images/calibrating-ok.png').convert_alpha()
+        calibrating_dark_img = pygame.image.load('assets/images/calibration/calibrating-dark.png').convert_alpha()
+        calibrating_bright_img = pygame.image.load('assets/images/calibration/calibrating-bright.png').convert_alpha()
+        calibrating_ok_img = pygame.image.load('assets/images/calibration/calibrating-ok.png').convert_alpha()
 
         calibrating_text_size = calibrating_dark_img.get_size() # All calibrating images should have the same size and the same position
         calibrating_text_size = (calibrating_text_size[0] * base_scale, calibrating_text_size[1] * base_scale)
@@ -103,7 +103,7 @@ class WiimotePlayerUI(UIObject):
 
         self.calibrating_ok_img = pygame.transform.scale(calibrating_ok_img, calibrating_text_size)
 
-        wiimote_img = pygame.image.load('assets/images/wiimote.png').convert_alpha()
+        wiimote_img = pygame.image.load('assets/images/calibration/wiimote.png').convert_alpha()
         self.wiimote_size = wiimote_img.get_size()
         self.wiimote_size = (self.wiimote_size[0] * base_scale, self.wiimote_size[1] * base_scale)
         self.wiimote_orig_img = pygame.transform.scale(wiimote_img, self.wiimote_size)
@@ -200,11 +200,12 @@ class CalibrationBarStates(Enum):
 class UIObjCalibrationBar(UIObject):
     CALIBRATION_BAR_TOP_PERCENT = 0.623148148
 
-    def __init__(self, display_size, calibration_bar_img):
+    def __init__(self, display_size):
         super().__init__()
         self.state = CalibrationBarStates.ENTERING
 
         self.calibration_bar_top_pos = display_size[1] * self.CALIBRATION_BAR_TOP_PERCENT
+        calibration_bar_img = pygame.image.load('assets/images/calibration/calibration-bar.png').convert_alpha()
         calibration_bar_size = calibration_bar_img.get_size()
         calibration_bar_height = display_size[1] - self.calibration_bar_top_pos
         scale = calibration_bar_height / calibration_bar_size[1]
@@ -267,10 +268,11 @@ class UIObjInfoDialog(UIObject):
     DIALOG_END_OFFSET_PERCENT = 0.037962963
     DIALOG_END_BOTTOM_PERCENT = 0.61944444
 
-    def __init__(self, display_size, dialog_img, lay_flat_img):
+    def __init__(self, display_size):
         super().__init__()
         self.state = InfoDialogStates.SHRINKING
 
+        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
         self.orig_dialog_img = dialog_img
         dialog_size = dialog_img.get_size()
         x_scale = (display_size[0] - (Constants.DIALOG_OFFSET * 2)) / dialog_size[0]
@@ -294,6 +296,7 @@ class UIObjInfoDialog(UIObject):
         self.alpha_surf = pygame.Surface(self.end_dialog_size, pygame.SRCALPHA)
         self.alpha_surf.convert()
 
+        lay_flat_img = pygame.image.load('assets/images/calibration/lay-flat_upscaled.png').convert_alpha()
         lay_flat_size = lay_flat_img.get_size()
         lay_flat_size = (int(lay_flat_size[0] * end_scale * 0.5), int(lay_flat_size[1] * end_scale * 0.5))
         lay_flat_img_offset = (334, 37)
@@ -392,12 +395,8 @@ class CalibrationScreen(Screen):
 
     def __init__(self, display, init_events):
         super().__init__(display, init_events)
-        display_size = display.get_size()
-        dialog_img = pygame.image.load(Constants.DIALOG_IMG_FILE).convert_alpha()
-        lay_flat_img = pygame.image.load('assets/images/lay-flat_upscaled.png').convert_alpha()
-        calibration_bar_img = pygame.image.load('assets/images/calibration-bar.png').convert_alpha()
         self.active_objs = [
-            UIObjInfoDialog(display_size, dialog_img, lay_flat_img),
-            UIObjCalibrationBar(display_size, calibration_bar_img),
-            UIObjFadeOut(display_size)
+            UIObjInfoDialog(self.display_size),
+            UIObjCalibrationBar(self.display_size),
+            UIObjFadeOut(self.display_size)
         ]
