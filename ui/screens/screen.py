@@ -21,13 +21,14 @@ class Screen:
         self.active_objs = []
         self.events = {}
 
-    def update(self, dt, wm_state):
+    def update(self, dt, pygame_events, wm_state):
         upcoming_events = {}
         for obj in self.active_objs:
-            events = []
+            obj_events = []
+            obj_events += pygame_events
             if type(obj) in self.events:
-                events = self.events[type(obj)]
-            new_events = obj.update(dt, events, wm_state)
+                obj_events += [self.events[type(obj)]]
+            new_events = obj.update(dt, obj_events, wm_state)
             if new_events is not None:
                 if isinstance(new_events, ScreenStates) or (len(new_events) > 0 and isinstance(new_events[0], ScreenStates)):
                     return new_events

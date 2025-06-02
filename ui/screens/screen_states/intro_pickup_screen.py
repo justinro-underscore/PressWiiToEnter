@@ -47,7 +47,7 @@ class UIObjPickUpDialog(UIObject):
         self.pick_up_pos = (pick_up_img_offset[0] * scale, pick_up_img_offset[1] * scale)
         self.pick_up_img_orig = pygame.transform.scale(pick_up_img, pick_up_size)
 
-        font = pygame.font.Font('assets/fonts/contb.ttf', 72)
+        font = pygame.font.Font('assets/fonts/contb.ttf', int(72 * scale))
         self.text_time = 0
         self.text = font.render('Pick up the Wii remote', True, '#444444')
         self.text_size = self.text.get_size()

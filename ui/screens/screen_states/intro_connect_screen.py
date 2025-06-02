@@ -15,10 +15,10 @@ class UIObjIntroFade(UIObject):
     INIT_WAIT_LENGTH = 0.25
     FADE_LENGTH = 1.5
 
-    def __init__(self, display_size):
+    def __init__(self, display_size, from_white_screen):
         super().__init__()
         self.surf = pygame.Surface(display_size)
-        self.surf.fill('#525252')
+        self.surf.fill('#525252' if not from_white_screen else '#ffffff')
         self.time = 0
 
     def update(self, dt, incoming_events, wm_state):
@@ -73,13 +73,14 @@ class UIObjConnectDialog(UIObject):
         self.press_connect_pos = (press_connect_img_offset[0] * scale, press_connect_img_offset[1] * scale)
         self.press_connect_img_orig = pygame.transform.scale(press_connect_img, press_connect_size)
 
-        font = pygame.font.Font('assets/fonts/contb.ttf', 54)
+        font_size = int(46 * scale)
+        font = pygame.font.Font('assets/fonts/contb.ttf', font_size)
         self.text = font.render('Connect the Wiimote by pressing 1+2 on the remote.', True, '#444444')
         self.text_pos = self.text.get_rect(centerx=dialog_size[0] * 0.5, centery=dialog_size[1] * 0.7)
 
         self.connected_text = font.render('CONNECTED', True, '#4fbed1')
         self.connected_text_size = self.connected_text.get_size()
-        self.connected_text_pos = self.connected_text.get_rect(centerx=dialog_size[0] * 0.5, centery=(dialog_size[1] * 0.7) + 60)
+        self.connected_text_pos = self.connected_text.get_rect(centerx=dialog_size[0] * 0.5, centery=(dialog_size[1] * 0.7) + font_size)
         self.connected_text_scale_y = 0
         self.connected_time = 0
 
@@ -103,10 +104,10 @@ class UIObjConnectDialog(UIObject):
                     self.connected_text_copy = pygame.transform.scale(self.connected_text, (self.connected_text_size[0], self.connected_text_size[1] * self.connected_text_scale_y))
                 else:
                     if self.connected_text_scale_y != 1:
+                        self.connected_text_scale_y = 1
                         self.connected_text = pygame.transform.scale(self.connected_text, self.connected_text_size)
                     if self.connected_time >= self.CONNECTED_BOUNCE_TIME + self.CONNECTED_TIME_OFFSET:
                         self.state = ConnectDialogStates.FADING_OUT
-                pass
             case ConnectDialogStates.FADING_OUT:
                 self.alpha_time += dt
                 self.alpha = max(((self.FADE_OUT_TIME - self.alpha_time) / self.FADE_OUT_TIME) * 255, 0)
@@ -150,8 +151,9 @@ class IntroConnectScreen(Screen):
         press_connect_img = pygame.image.load('assets/images/press-to-connect_upscaled.png').convert_alpha()
 
         from_dialog = Constants.EVENT_FROM_DIALOG in init_events
+        from_white_screen = Constants.EVENT_FROM_WHITE_SCREEN in init_events
         self.active_objs = [
             UIObjConnectDialog(display_size, dialog_img, press_connect_img, from_dialog),
         ]
         if not from_dialog:
-            self.active_objs += [UIObjIntroFade(display_size)]
+            self.active_objs += [UIObjIntroFade(display_size, from_white_screen)]
