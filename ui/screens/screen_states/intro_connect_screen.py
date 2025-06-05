@@ -15,10 +15,13 @@ class UIObjIntroFade(UIObject):
     INIT_WAIT_LENGTH = 0.25
     FADE_LENGTH = 1.5
 
-    def __init__(self, display_size, from_white_screen):
+    def __init__(self, display_size, from_white_screen, from_black_screen):
         super().__init__()
         self.surf = pygame.Surface(display_size)
-        self.surf.fill('#525252' if not from_white_screen else '#ffffff')
+        color = '#525252'
+        if from_white_screen: color = '#ffffff'
+        if from_black_screen: color = '#000000'
+        self.surf.fill(color)
         self.time = 0
 
     def update(self, dt, incoming_events, wm_state):
@@ -151,8 +154,9 @@ class IntroConnectScreen(Screen):
 
         from_dialog = Constants.EVENT_FROM_DIALOG in init_events
         from_white_screen = Constants.EVENT_FROM_WHITE_SCREEN in init_events
+        from_black_screen = Constants.EVENT_FROM_BLACK_SCREEN in init_events
         self.active_objs = [
             UIObjConnectDialog(self.display_size, from_dialog),
         ]
         if not from_dialog:
-            self.active_objs += [UIObjIntroFade(self.display_size, from_white_screen)]
+            self.active_objs += [UIObjIntroFade(self.display_size, from_white_screen, from_black_screen)]

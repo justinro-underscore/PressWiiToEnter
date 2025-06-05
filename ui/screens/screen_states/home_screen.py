@@ -39,6 +39,34 @@ class UIObjIntroFade(UIObject):
 
 ######################################################
 
+class UIObjDisconnectedFadeOut(UIObject):
+    FADE_LENGTH = 0.5
+
+    def __init__(self, display_size):
+        super().__init__()
+        self.surf = pygame.Surface(display_size)
+        self.surf.fill('#ffffff')
+        self.surf.set_alpha(0)
+        self.fading = False
+        self.time = 0
+
+    def update(self, dt, incoming_events, wm_state):
+        if self.fading:
+            self.time += dt
+            progress = min(self.time / self.FADE_LENGTH, 1)
+            a = int(255 * ease_out_sine(progress))
+            self.surf.set_alpha(a)
+            if progress >= 1:
+                return (ScreenStates.INTRO_CONNECT_SCREEN, Constants.EVENT_FROM_WHITE_SCREEN)
+        elif Constants.EVENT_WIIMOTE_DISCONNECTED in incoming_events:
+            self.fading = True
+        return []
+
+    def draw(self, display):
+        display.blit(self.surf, (0,0))
+
+######################################################
+
 class UIObjWelcomeInStates(Enum):
     WAITING_FOR_ACTIVATION = 1
     FADING_IN = 2
@@ -96,19 +124,22 @@ class UIObjWelcomeIn(UIObject):
             case UIObjWelcomeInStates.PAUSING:
                 self.time += dt
 
-                rot_delta = 0
-                if self.last_wm_acc is not None:
-                    for i in range(len(wm_state.acc)):
-                        rot_delta += abs(wm_state.acc[i] - self.last_wm_acc[i])
-                self.last_wm_acc = wm_state.acc
-
                 ready = False
-                if rot_delta < self.PAUSE_ROT_THRESHOLD:
-                    self.acc_check_time += dt
-                    if self.acc_check_time >= self.PAUSE_ROT_TIME:
-                        ready = True
+                if wm_state.connected:
+                    rot_delta = 0
+                    if self.last_wm_acc is not None:
+                        for i in range(len(wm_state.acc)):
+                            rot_delta += abs(wm_state.acc[i] - self.last_wm_acc[i])
+                    self.last_wm_acc = wm_state.acc
+
+                    if rot_delta < self.PAUSE_ROT_THRESHOLD:
+                        self.acc_check_time += dt
+                        if self.acc_check_time >= self.PAUSE_ROT_TIME:
+                            ready = True
+                    else:
+                        self.acc_check_time = 0
                 else:
-                    self.acc_check_time = 0
+                    ready = True
 
                 if self.time >= self.MIN_PAUSE_TIME and ready:
                     self.time = 0
@@ -120,7 +151,10 @@ class UIObjWelcomeIn(UIObject):
                 self.fade_surf.set_alpha(int((255 - self.FADE_IN_ALPHA_MAX) * x + self.FADE_IN_ALPHA_MAX))
                 self.text_surf.set_alpha(int(255 * (1 - x)))
                 if progress >= 1:
-                    return (ScreenStates.INTRO_PICKUP_SCREEN, Constants.EVENT_FROM_BLACK_SCREEN)
+                    if wm_state.connected:
+                        return (ScreenStates.INTRO_PICKUP_SCREEN, Constants.EVENT_FROM_BLACK_SCREEN)
+                    else:
+                        return (ScreenStates.INTRO_CONNECT_SCREEN, Constants.EVENT_FROM_BLACK_SCREEN)
         return []
 
     def draw(self, display):
@@ -242,6 +276,9 @@ class UIObjTitle(UIObject):
                 if x >= 1:
                     self.state = UIObjTitleStates.IDLE
             case UIObjTitleStates.IDLE:
+                if not wm_state.connected:
+                    return [(UIObjDisconnectedFadeOut, Constants.EVENT_WIIMOTE_DISCONNECTED)]
+
                 if (not self.a_pressed and wm_state.a_btn) or (self.a_pressed and not wm_state.a_btn):
                     self.a_alpha_time = 0
                     self.a_pressed = wm_state.a_btn
@@ -370,5 +407,6 @@ class HomeScreen(Screen):
             UIObjBackground(self.display_size),
             UIObjTitle(self.display_size),
             UIObjIntroFade(self.display_size),
+            UIObjDisconnectedFadeOut(self.display_size),
             UIObjWelcomeIn(self.display_size)
         ]

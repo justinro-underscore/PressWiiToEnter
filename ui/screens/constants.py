@@ -10,6 +10,7 @@ class Constants():
     #                UI EVENTS               #
     ##########################################
     EVENT_KEYDOWN = 'keydown-'
+    EVENT_WIIMOTE_DISCONNECTED = 'wiimote-disconnected'
 
     EVENT_FADED_IN = 'faded-in'
     EVENT_FROM_DIALOG = 'from-dialog'
