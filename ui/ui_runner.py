@@ -33,7 +33,7 @@ class UIRunner:
         # self.increasing_time = [0, 0, 0]
         # self.wm_acc_test_enabled = True
 
-        self.curr_screen = self.SCREEN_STATES[ScreenStates.CALIBRATION_SCREEN](self.display, [])
+        self.curr_screen = self.SCREEN_STATES[ScreenStates.HOME_SCREEN](self.display, [])
 
     def update(self, wm_state):
         pygame_events = []

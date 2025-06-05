@@ -2,6 +2,7 @@ import threading
 import time
 from multiprocessing import Process, Queue, set_start_method
 import os, signal
+import cwiid
 from wiimote.wiimote_state import WiimoteState
 from wiimote.wiimote_handler import wiimote_handler
 
@@ -51,6 +52,8 @@ class WiimoteRunner:
                     raise state['wiimote_error']
                 else:
                     self.wm_state.acc = state['acc']
+                    self.wm_state.a_btn = state['buttons'] & cwiid.BTN_A > 0
+                    self.wm_state.b_btn = state['buttons'] & cwiid.BTN_B > 0
             except Exception:
                 print('No response from Wiimote, killing process and trying again...')
                 self.terminate_handler()

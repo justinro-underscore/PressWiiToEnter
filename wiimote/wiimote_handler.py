@@ -7,7 +7,7 @@ def wiimote_handler(q):
             wiimote = cwiid.Wiimote()
             if wiimote:
                 wiimote.led = 1
-                wiimote.rpt_mode = cwiid.RPT_ACC
+                wiimote.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC
                 return wiimote
         except RuntimeError:
             pass
