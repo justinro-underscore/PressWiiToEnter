@@ -39,6 +39,98 @@ class UIObjIntroFade(UIObject):
 
 ######################################################
 
+class UIObjWelcomeInStates(Enum):
+    WAITING_FOR_ACTIVATION = 1
+    FADING_IN = 2
+    PAUSING = 3
+    FADE_AWAY = 4
+
+class UIObjWelcomeIn(UIObject):
+    FADE_IN_LENGTH = 1.5
+    FADE_IN_ALPHA_MAX = 200
+
+    MIN_PAUSE_TIME = 4
+    PAUSE_ROT_THRESHOLD = 3
+    PAUSE_ROT_TIME = 2
+
+    FADE_AWAY_LENGTH = 2
+
+    def __init__(self, display_size):
+        super().__init__()
+        self.state = UIObjWelcomeInStates.WAITING_FOR_ACTIVATION
+
+        self.fade_surf = pygame.Surface(display_size).convert_alpha()
+        self.fade_surf.fill('#000000')
+        self.fade_surf.set_alpha(0)
+
+        font1 = pygame.font.Font('assets/fonts/contb.ttf', 104)
+        self.text1 = font1.render('WELCOME TO WUHU ISLAND!', True, '#ffffff').convert_alpha()
+        self.text1_pos = self.text1.get_rect(centerx=display_size[0] * 0.5, bottom=display_size[1] * 0.5 - 5)
+        font2 = pygame.font.Font('assets/fonts/contb.ttf', 48)
+        self.text2 = font2.render('Please leave the Wii Remote on the table', True, '#ffffff').convert_alpha()
+        self.text2_pos = self.text2.get_rect(centerx=display_size[0] * 0.5, top=display_size[1] * 0.5 + 5)
+        self.text_surf = pygame.Surface(display_size, pygame.SRCALPHA).convert_alpha()
+        self.text_surf.blit(self.text1, self.text1_pos)
+        self.text_surf.blit(self.text2, self.text2_pos)
+        self.text_surf.set_alpha(0)
+
+        self.time = 0
+
+        self.last_wm_acc = None
+        self.acc_check_time = 0
+
+    def update(self, dt, incoming_events, wm_state):
+        match self.state:
+            case UIObjWelcomeInStates.WAITING_FOR_ACTIVATION:
+                if Constants.EVENT_HOME_READY in incoming_events:
+                    self.state = UIObjWelcomeInStates.FADING_IN
+            case UIObjWelcomeInStates.FADING_IN:
+                self.time += dt
+                progress = min(self.time / self.FADE_IN_LENGTH, 1)
+                x = ease_in_sine(progress)
+                self.fade_surf.set_alpha(int(self.FADE_IN_ALPHA_MAX * x))
+                self.text_surf.set_alpha(int(255 * x))
+                if progress >= 1:
+                    self.time = 0
+                    self.state = UIObjWelcomeInStates.PAUSING
+            case UIObjWelcomeInStates.PAUSING:
+                self.time += dt
+
+                rot_delta = 0
+                if self.last_wm_acc is not None:
+                    for i in range(len(wm_state.acc)):
+                        rot_delta += abs(wm_state.acc[i] - self.last_wm_acc[i])
+                self.last_wm_acc = wm_state.acc
+
+                ready = False
+                if rot_delta < self.PAUSE_ROT_THRESHOLD:
+                    self.acc_check_time += dt
+                    if self.acc_check_time >= self.PAUSE_ROT_TIME:
+                        ready = True
+                else:
+                    self.acc_check_time = 0
+
+                if self.time >= self.MIN_PAUSE_TIME and ready:
+                    self.time = 0
+                    self.state = UIObjWelcomeInStates.FADE_AWAY
+            case UIObjWelcomeInStates.FADE_AWAY:
+                self.time += dt
+                progress = min(self.time / self.FADE_AWAY_LENGTH, 1)
+                x = ease_out_sine(progress)
+                self.fade_surf.set_alpha(int((255 - self.FADE_IN_ALPHA_MAX) * x + self.FADE_IN_ALPHA_MAX))
+                self.text_surf.set_alpha(int(255 * (1 - x)))
+                if progress >= 1:
+                    return (ScreenStates.INTRO_PICKUP_SCREEN, Constants.EVENT_FROM_BLACK_SCREEN)
+        return []
+
+    def draw(self, display):
+        if self.state == UIObjWelcomeInStates.WAITING_FOR_ACTIVATION:
+            return
+        display.blit(self.fade_surf, (0,0))
+        display.blit(self.text_surf, (0,0))
+
+######################################################
+
 class UIObjTitleStates(Enum):
     WAITING_FOR_FADE = 1
     SWOOPING_IN = 2
@@ -206,6 +298,7 @@ class UIObjTitle(UIObject):
                 self.alpha = (1 - min(self.fade_out_time / self.FADE_OUT_TIME, 1)) * 255
                 if self.fade_out_time >= self.FADE_OUT_TIME:
                     self.is_complete = True
+                    return [(UIObjWelcomeIn, Constants.EVENT_HOME_READY)]
         return []
 
     def draw(self, display):
@@ -276,5 +369,6 @@ class HomeScreen(Screen):
         self.active_objs = [
             UIObjBackground(self.display_size),
             UIObjTitle(self.display_size),
-            UIObjIntroFade(self.display_size)
+            UIObjIntroFade(self.display_size),
+            UIObjWelcomeIn(self.display_size)
         ]

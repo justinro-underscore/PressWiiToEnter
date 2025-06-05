@@ -2,12 +2,37 @@ import pygame
 from enum import Enum
 from ui.screens.constants import Constants
 from math import sin
+from ui.screens.easings import ease_in_sine
 from ui.screens.screen import Screen, ScreenStates
 from ui.screens.ui_object import UIObject
 
 
 ######################################################
 #                    UI Objects                      #
+######################################################
+
+
+class UIObjIntroFade(UIObject):
+    FADE_LENGTH = 0.5
+
+    def __init__(self, display_size):
+        super().__init__()
+        self.surf = pygame.Surface(display_size)
+        self.surf.fill('#000000')
+        self.time = 0
+
+    def update(self, dt, incoming_events, wm_state):
+        self.time += dt
+        progress = min(self.time / self.FADE_LENGTH, 1)
+        a = int(255 * (1 - ease_in_sine(progress)))
+        self.surf.set_alpha(a)
+        if progress >= 1:
+            self.is_complete = True
+        return []
+
+    def draw(self, display):
+        display.blit(self.surf, (0,0))
+
 ######################################################
 
 class PickUpDialogStates(Enum):
@@ -121,3 +146,5 @@ class IntroPickupScreen(Screen):
         self.active_objs = [
             UIObjPickUpDialog(self.display_size)
         ]
+        if Constants.EVENT_FROM_BLACK_SCREEN in init_events:
+            self.active_objs += [UIObjIntroFade(self.display_size)]

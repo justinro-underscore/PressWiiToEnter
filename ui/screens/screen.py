@@ -5,7 +5,6 @@ class ScreenStates(Enum):
     INTRO_PICKUP_SCREEN = 2
     CALIBRATION_SCREEN = 3
     HOME_SCREEN = 4
-    WELCOME_SCREEN = 5
 
 class Screen:
     @property

@@ -14,6 +14,9 @@ class Constants():
     EVENT_FADED_IN = 'faded-in'
     EVENT_FROM_DIALOG = 'from-dialog'
     EVENT_FROM_WHITE_SCREEN = 'from-white-screen'
+    EVENT_FROM_BLACK_SCREEN = 'from-black-screen'
 
     EVENT_CALIBRATION_EXITING = 'calibration-exiting'
     EVENT_CALIBRATION_DONE = 'calibration-done'
+
+    EVENT_HOME_READY = 'home-ready'
