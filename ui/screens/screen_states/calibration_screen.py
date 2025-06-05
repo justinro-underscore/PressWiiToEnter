@@ -53,11 +53,10 @@ class WiimotePlayerUI(UIObject):
 
     CALIBRATION_TEXT_ALPHA_TIME = 0.6
 
-    WIIMOTE_ROTATION_SCALAR = 1
-    WIIMOTE_ROTATION_PURE_CLOCKWISE = False
-    WIIMOTE_ROTATION_LERP = 0.6
+    WIIMOTE_ROTATION_SCALAR = 3
+    WIIMOTE_ROTATION_LERP = 0.9
 
-    CALIBRATION_ROT_THRESHOLD = 2
+    CALIBRATION_ROT_THRESHOLD = 3
     CALIBRATION_TIME = 4
 
     CALIBRATION_DONE_MOVE_TIME = 0.6
@@ -129,14 +128,10 @@ class WiimotePlayerUI(UIObject):
                 x = self.calibrating_alpha_time % self.CALIBRATION_TEXT_ALPHA_TIME
                 self.calibrating_alpha_surf_alpha = int(ease_in_out_quad(x if brightening else (1 - x)) * 255)
 
-                abs_change_delta = 0
+                rot_delta = 0
                 if self.last_wm_acc is not None:
-                    change_delta = 0
                     for i in range(len(wm_state.acc)):
-                        delta = wm_state.acc[i] - self.last_wm_acc[i]
-                        change_delta += delta
-                        abs_change_delta += abs(delta)
-                    rot_delta = -abs(change_delta) if self.WIIMOTE_ROTATION_PURE_CLOCKWISE else change_delta
+                        rot_delta += abs(wm_state.acc[i] - self.last_wm_acc[i])
                     self.wiimote_rot_target += rot_delta * self.WIIMOTE_ROTATION_SCALAR
                     self.wiimote_rot = ((self.wiimote_rot_target - self.wiimote_rot) * (self.WIIMOTE_ROTATION_LERP * dt)) + self.wiimote_rot
                 self.last_wm_acc = wm_state.acc
@@ -145,7 +140,7 @@ class WiimotePlayerUI(UIObject):
                     self.wiimote_img = pygame.transform.rotate(self.wiimote_orig_img.copy(), self.wiimote_rot)
                     self.wiimote_pos = self.wiimote_img.get_rect(centerx=self.surf_size[0] * 0.5, centery=45 + (self.surf_size[1] * 0.5))
 
-                if abs_change_delta < self.CALIBRATION_ROT_THRESHOLD:
+                if rot_delta < self.CALIBRATION_ROT_THRESHOLD:
                     self.calibration_time += dt
                     if self.calibration_time >= self.CALIBRATION_TIME:
                         self.wiimote_rot = self.wiimote_rot % 360
