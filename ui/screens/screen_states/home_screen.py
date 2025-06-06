@@ -1,4 +1,5 @@
 import pygame
+import cv2
 from enum import Enum
 from math import cos
 from ui.screens.constants import Constants
@@ -370,20 +371,36 @@ class UIObjBackground(UIObject):
     def __init__(self, display_size):
         super().__init__()
 
-        background_img = pygame.image.load('assets/images/home/wuhu-island.png').convert_alpha()
+        self.video = cv2.VideoCapture('assets/video/wuhu-island.webm')
+        self.can_show_video, video_image = self.video.read()
+        video_size = video_image.shape[1::-1]
+        video_x_scale = display_size[0] / video_size[0]
+        video_y_scale = display_size[1] / video_size[1]
+        video_scale = max(video_x_scale, video_y_scale)
+        self.video_size = (int(video_size[0] * video_scale), int(video_size[1] * video_scale))
+        self.video_pos = ((display_size[0] - self.video_size[0]) * 0.5, (display_size[1] - self.video_size[1]) * 0.5)
+
+        background_img = pygame.image.load('assets/images/home/wuhu-island.jpg').convert_alpha()
         background_size = background_img.get_size()
-        x_scale = background_size[0] / display_size[0]
-        y_scale = background_size[1] / display_size[1]
-        scale = min(x_scale, y_scale)
-        background_size = (int(background_size[0] * scale), int(background_size[1] * scale))
+        background_x_scale = display_size[0] / background_size[0]
+        background_y_scale = display_size[1] / background_size[1]
+        background_scale = max(background_x_scale, background_y_scale)
+        background_size = (int(background_size[0] * background_scale), int(background_size[1] * background_scale))
         self.background_img = pygame.transform.scale(background_img, background_size)
         self.background_pos = self.background_img.get_rect(centerx=display_size[0] * 0.5, centery=display_size[1] * 0.5)
 
     def update(self, dt, incoming_events, wm_state):
+        self.can_show_video, video_image = self.video.read()
+        if self.can_show_video:
+            video_surf = pygame.image.frombuffer(video_image.tobytes(), video_image.shape[1::-1], 'BGR')
+            self.video_surf = pygame.transform.scale(video_surf, self.video_size)
         return []
 
     def draw(self, display):
-        display.blit(self.background_img, self.background_pos)
+        if self.can_show_video and self.video_surf:
+            display.blit(self.video_surf, self.video_pos)
+        else:
+            display.blit(self.background_img, self.background_pos)
 
 
 
